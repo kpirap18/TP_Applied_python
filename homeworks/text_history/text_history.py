@@ -35,8 +35,11 @@ class TextHistory:
     def delete():
         pass
     
-    def replace():
-        pass
+    def replace(self, text, pos=None):
+        if pos is None:
+            pos = len(self._text)
+        act = ReplaceAction(text, pos, self._version, self._version + 1)
+        return self.action(act)        
     
     def optimize(self, actions):
         id = 0
@@ -109,6 +112,11 @@ class InsertAction(Action):
     def pos(self):
         return self._pos
     
+#    def merge(self, action):
+#    def merge_with_replace(self, action):
+#    def merge_with_delete(self, action):
+#    def merge_with_insert(self, action):
+
     def apply(self, apply_to):
         if len(apply_to) < self._pos:
             raise ValueError("Insert position {} out of string length {}." \
@@ -117,7 +125,40 @@ class InsertAction(Action):
 
 
 class ReplaceAction(Action):
-    pass
+    def __init__(self, text, pos, from_v, to_v):
+        if pos is not None and pos < 0:
+            raise ValueError("Pos can not be negative")
+        self._text = text
+        self._pos = pos
+        super().__init__(from_v, to_v)
+
+    def __repr__(self):
+        return "ReplaceAction(text='{}', pos={}, from_version={}, to_version={})" \
+               .format(self._text, self._pos, self._from_version, self._to_version)
+    
+    def __eq__(self, other):
+        if isinstance(other, type(self)) and self._pos == other._pos \
+            and self._text == other._pos:
+            return True
+
+    @property
+    def text(self):
+        return self._text
+
+    @property
+    def pos(self):
+        return self._pos
+
+#    def merge(self, action):
+#    def merge_with_replace(self, action):
+#    def merge_with_delete(self, action):
+#    def merge_with_insert(self, action):
+
+    def apply(self, apply_to):
+    if len(apply_to) < self._pos:
+        raise ValueError("Insert position {} out of string length {}." \
+                             .format(self._pos, len(apply_to)))
+        return apply_to[:self._pos] + self._text + apply_to[self._pos:]
 
 
 class DeleteAction(Action):
