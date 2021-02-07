@@ -19,12 +19,16 @@ class TextHistory:
         return self._version
     
     def action(self, act):
-        pass
+        if act._from_version != self._version:
+            raise ValueError("Action version deffers from current text version.")
+        self._text = act.apply(self._text)
+        self._actions.append(act)
+        self._version = act.to_version
+        return act.to_version
     
     def insert(self, text, pos=None):
         pass
 
-    
     def delete():
         pass
     
@@ -52,6 +56,10 @@ class Action(ABC):
     @property
     def to_version(self):
         return self._to_version
+
+    @abstractmethod
+    def apply(self, apply_to):
+        pass
 
 
 class InsertAction(Action):
