@@ -32,9 +32,10 @@ class TextHistory:
         act = InsertAction(text, pos, self._version, self._version + 1)
         return self.action(act)
 
-    def delete():
-        pass
-    
+    def delete(self, pos, length):
+        act = DeleteAction(pos, length, self._version, self._version + 1)
+        return self.action(act)
+
     def replace(self, text, pos=None):
         if pos is None:
             pos = len(self._text)
@@ -162,7 +163,41 @@ class ReplaceAction(Action):
 
 
 class DeleteAction(Action):
-    pass
+    def __init__(self, pos, length, from_v, to_v):
+        if pos < 0 or length < 0:
+            raise ValueError("Pos and len can not be negative") 
+        self._pos = pos
+        self._length = length
+        super().__init__(from_v, to_v) 
+
+    def __repr__(self):
+        return   "DeleteAction(pos={}, length={}, from_version={}, to_version={})" \
+               .format(self._pos, self._length, self._from_version, self._to_version)
+
+    def __eq__(self, other):
+        if isinstance(other, type(self)) and self._pos == other._pos and self._length == other._length:
+            return True
+        return False
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @property
+    def length(self):
+        return self._length
+
+#    def merge(self, action):
+#    def merge_with_replace(self, action):
+#    def merge_with_delete(self, action):
+#    def merge_with_insert(self, action):
+
+    def apply(self, apply_to):
+        if int(self._pos) > len(apply_to):
+            raise ValueError("Pos out of string length.")
+        if self._pos + self._length > len(apply_to):
+            raise ValueError("Trying to delete symbols out of string.")
+        return apply_to[:self._pos] + apply_to[self._pos+self._length:]
 
 
 h = TextHistory('weweqwewfwef\nwefwefwef')
