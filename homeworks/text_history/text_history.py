@@ -150,10 +150,17 @@ class ReplaceAction(Action):
     def pos(self):
         return self._pos
 
-#    def merge(self, action):
-#    def merge_with_replace(self, action):
-#    def merge_with_delete(self, action):
-#    def merge_with_insert(self, action):
+    def merge(self, action):
+        return action.merge_with_replace(self)
+   
+    def merge_with_replace(self, action):
+        if self._pos == action._pos and len(self._text) >= len(action._text):
+            if action._to_version < self._to_version:
+                action._to_version = self._to_version
+                action._text = self._text
+            else:
+                action._from_version = self._from_version
+            return True
 
     def apply(self, apply_to):
     if len(apply_to) < self._pos:
@@ -187,10 +194,17 @@ class DeleteAction(Action):
     def length(self):
         return self._length
 
-#    def merge(self, action):
-#    def merge_with_replace(self, action):
-#    def merge_with_delete(self, action):
-#    def merge_with_insert(self, action):
+    def merge(self, action):
+        return action.merge_with_delete(self)
+    
+    def merge_with_delete(self, action):
+        if self._pos == action._pos:
+            action._length += self._length
+            if action._from_version < self._from_version:
+                action._to_version = self._to_version
+            else:
+                action._from_version = self._from_version
+            return True
 
     def apply(self, apply_to):
         if int(self._pos) > len(apply_to):
